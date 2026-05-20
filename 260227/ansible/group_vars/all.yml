@@ -1,0 +1,5 @@
+---
+timezone: Asia/Yekaterinburg
+
+docker_users:
+  - vagrant

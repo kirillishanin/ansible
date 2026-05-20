@@ -1,0 +1,17 @@
+ansible/group_vars/postgres.yml
+---
+postgresql_databases:
+
+  - name: n8n_db
+    owner: n8n
+
+  - name: wikijs_db
+    owner: wikijs
+
+postgresql_users:
+
+  - name: n8n
+    password: "{{ vault_n8n_password }}"
+
+  - name: wikijs
+    password: "{{ vault_wikijs_password }}"
