@@ -1,0 +1,354 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# =========================================================
+# AI HOMELAB INFRASTRUCTURE
+#
+# Stack:
+# - nginx reverse proxy
+# - n8n web
+# - n8n worker
+# - Redis
+# - PostgreSQL
+# - Wiki.js
+# - Ollama
+#
+# Provider:
+# - VirtualBox
+#
+# Provisioning:
+# - Ansible (будет добавлен позже)
+#
+# Network:
+# - isolated private subnet
+#
+# =========================================================
+
+# =========================================================
+# GLOBAL CONFIGURATION
+# =========================================================
+
+# Base Ubuntu image
+VAGRANT_BOX = "ubuntu/jammy64"
+
+# Internal private subnet
+NETWORK_PREFIX = "10.77.133"
+
+# /28 subnet = 16 addresses
+NETMASK = "255.255.255.240"
+
+# VM boot timeout
+BOOT_TIMEOUT = 600
+
+# Prefix для VM names в VirtualBox
+PROJECT_NAME = "ai-homelab"
+
+# =========================================================
+# VM FACTORY
+#
+# Унифицированный метод создания VM
+# Позволяет не дублировать одинаковый код
+# =========================================================
+
+def create_vm(config, params)
+
+  config.vm.define params[:name] do |vm|
+
+    # =====================================================
+    # BASE VM CONFIGURATION
+    # =====================================================
+
+    # Ubuntu box
+    vm.vm.box = VAGRANT_BOX
+
+    # Hostname внутри VM
+    vm.vm.hostname = params[:hostname]
+
+    # Максимальное ожидание boot
+    vm.vm.boot_timeout = BOOT_TIMEOUT
+
+    # =====================================================
+    # PRIVATE NETWORK
+    #
+    # Все VM находятся внутри isolated subnet
+    # и могут общаться между собой
+    # =====================================================
+
+    vm.vm.network "private_network",
+      ip: "#{NETWORK_PREFIX}.#{params[:ip]}",
+      netmask: NETMASK
+
+    # =====================================================
+    # OPTIONAL PUBLIC NETWORK
+    #
+    # Используется если VM должна быть доступна
+    # из домашней сети
+    # =====================================================
+
+    if params[:public_network]
+
+      vm.vm.network "public_network"
+
+    end
+
+    # =====================================================
+    # SHARED FOLDERS
+    #
+    # Монтирует локальную папку внутрь VM
+    # =====================================================
+
+    if params[:shared_folder]
+
+      vm.vm.synced_folder(
+        "./#{params[:shared_folder]}",
+        "/home/vagrant/#{params[:shared_folder]}"
+      )
+
+    end
+
+    # =====================================================
+    # ANSIBLE DIRECTORY
+    #
+    # Позже здесь будут:
+    # - playbooks
+    # - inventory
+    # - roles
+    # =====================================================
+
+    vm.vm.synced_folder(
+      "./ansible",
+      "/home/vagrant/ansible",
+      create: true
+    )
+
+    # =====================================================
+    # VIRTUALBOX PROVIDER SETTINGS
+    # =====================================================
+
+    vm.vm.provider "virtualbox" do |vb|
+
+      # VM name внутри VirtualBox
+      vb.name = "#{PROJECT_NAME}-#{params[:name]}"
+
+      # RAM allocation
+      vb.memory = params[:memory]
+
+      # CPU allocation
+      vb.cpus = params[:cpus]
+
+    end
+
+  end
+
+end
+
+# =========================================================
+# MAIN VAGRANT CONFIGURATION
+# =========================================================
+
+Vagrant.configure("2") do |config|
+
+  # =======================================================
+  # DISABLE DEFAULT /vagrant SHARE
+  #
+  # Убираем лишний shared folder:
+  # current directory -> /vagrant
+  # =======================================================
+
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  # =======================================================
+  # NGINX REVERSE PROXY
+  #
+  # Входная точка инфраструктуры
+  #
+  # Responsibilities:
+  # - reverse proxy
+  # - routing
+  # - TLS termination
+  # - ingress
+  # =======================================================
+
+  create_vm(config,
+
+    name: "nginx-rp",
+
+    hostname: "nginx-rp",
+
+    ip: 2,
+
+    memory: 1024,
+
+    cpus: 1,
+
+    shared_folder: "nginx",
+
+    public_network: false
+
+  )
+
+  # =======================================================
+  # N8N WEB NODE
+  #
+  # Responsibilities:
+  # - UI
+  # - API
+  # - webhooks
+  #
+  # НЕ выполняет workflows
+  # =======================================================
+
+  create_vm(config,
+
+    name: "n8n-web",
+
+    hostname: "n8n-web",
+
+    ip: 3,
+
+    memory: 2048,
+
+    cpus: 2,
+
+    shared_folder: "n8n-web",
+
+    public_network: false
+
+  )
+
+  # =======================================================
+  # N8N WORKER NODE
+  #
+  # Responsibilities:
+  # - workflow execution
+  # - queue processing
+  #
+  # Stateless worker node
+  # =======================================================
+
+  create_vm(config,
+
+    name: "n8n-worker",
+
+    hostname: "n8n-worker",
+
+    ip: 4,
+
+    memory: 2048,
+
+    cpus: 2,
+
+    shared_folder: "n8n-worker",
+
+    public_network: false
+
+  )
+
+  # =======================================================
+  # REDIS
+  #
+  # Responsibilities:
+  # - queue backend
+  # - cache
+  # - pub/sub
+  #
+  # Used by:
+  # - n8n queue mode
+  # =======================================================
+
+  create_vm(config,
+
+    name: "redis",
+
+    hostname: "redis",
+
+    ip: 5,
+
+    memory: 1024,
+
+    cpus: 1,
+
+    public_network: false
+
+  )
+
+  # =======================================================
+  # POSTGRESQL
+  #
+  # Central persistent database
+  #
+  # Used by:
+  # - n8n
+  # - Wiki.js
+  # =======================================================
+
+  create_vm(config,
+
+    name: "postgresql",
+
+    hostname: "postgresql",
+
+    ip: 6,
+
+    memory: 2048,
+
+    cpus: 2,
+
+    public_network: false
+
+  )
+
+  # =======================================================
+  # WIKI.JS
+  #
+  # Internal documentation/wiki platform
+  # =======================================================
+
+  create_vm(config,
+
+    name: "wikijs",
+
+    hostname: "wikijs",
+
+    ip: 7,
+
+    memory: 2048,
+
+    cpus: 1,
+
+    shared_folder: "wikijs",
+
+    public_network: false
+
+  )
+
+  # =======================================================
+  # OLLAMA
+  #
+  # Local LLM runtime
+  #
+  # Responsibilities:
+  # - local inference
+  # - model serving
+  # - AI backend
+  # =======================================================
+
+  create_vm(config,
+
+    name: "ollama",
+
+    hostname: "ollama",
+
+    ip: 8,
+
+    memory: 8192,
+
+    cpus: 4,
+
+    shared_folder: "ollama",
+
+    public_network: false
+
+  )
+
+end
