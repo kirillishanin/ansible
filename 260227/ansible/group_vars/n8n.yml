@@ -1,0 +1,5 @@
+---
+n8n_host: n8n.lab.local
+n8n_port: 5678
+n8n_queue_mode: true
+n8n_encryption_key: "{{ vault_n8n_encryption_key }}"
