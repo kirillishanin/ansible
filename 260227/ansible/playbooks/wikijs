@@ -1,0 +1,6 @@
+--- 
+- name: Wiki.js deployment
+  hosts: wikijs
+  become: true
+  roles:
+  - wikijs

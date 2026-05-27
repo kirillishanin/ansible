@@ -1,0 +1,8 @@
+---
+- name: n8n deployment
+  hosts:
+  - n8n_web
+  - n8n_worker
+  become: true
+  roles:
+  - n8n

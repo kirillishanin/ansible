@@ -1,0 +1,6 @@
+---
+- name: Redis deployment
+  hosts: redis
+  become: true
+  roles:
+  - redis

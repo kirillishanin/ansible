@@ -1,0 +1,6 @@
+--- 
+- name: Ollama deployment
+  hosts: ollama
+  become: true
+  roles:
+  - ollama

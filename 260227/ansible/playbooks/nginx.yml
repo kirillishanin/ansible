@@ -1,0 +1,6 @@
+--- 
+- name: NGINX deployment
+  hosts: nginx
+  become: true
+  roles:
+  - nginx

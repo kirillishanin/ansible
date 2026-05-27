@@ -1,0 +1,6 @@
+--- 
+- name: PostgreSQL deployment
+  hosts: postgres
+  become: true
+  roles:
+  - postgres
