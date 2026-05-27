@@ -1,0 +1,8 @@
+--- 
+- import_playbook: docker.yml
+- import_playbook: postgres.yml
+- import_playbook: redis.yml
+- import_playbook: nginx.yml
+- import_playbook: n8n.yml
+- import_playbook: wikijs.yml
+- import_playbook: ollama.yml

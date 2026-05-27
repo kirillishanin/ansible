@@ -1,0 +1,5 @@
+---
+vault_n8n_password: n8n
+vault_wikijs_password: wikijs
+vault_postgres_password: psql
+vault_n8n_encryption_key: n8nkey
