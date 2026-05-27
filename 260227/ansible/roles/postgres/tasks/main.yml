@@ -1,0 +1,12 @@
+--- 
+- name: Create PostgreSQL directory
+  file:
+    path: /opt/postgresql
+  state: directory
+- name: Deploy PostgreSQL compose
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/postgresql/docker-compose.yml
+- name: Start PostgreSQL
+  community.docker.docker_compose_v2:
+    project_src: /opt/postgresql

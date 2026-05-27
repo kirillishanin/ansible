@@ -1,7 +1,8 @@
 --- 
 - name: Install Docker dependencies
   apt:
-    name:- ca-certificates
+    name:
+    - ca-certificates
     - curl
     - gnupg
   state: present
