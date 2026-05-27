@@ -1,0 +1,18 @@
+events {}
+http {
+    upstream n8n {
+        server 10.77.133.3:5678;
+    }
+    upstream wikijs {
+        server 10.77.133.7:3000;
+    }
+    server {
+        listen 80;
+            location / {
+        proxy_pass http://n8n;
+        }
+            location /wiki/ {
+        proxy_pass http://wikijs;
+        }
+    }
+}
