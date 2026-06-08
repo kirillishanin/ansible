@@ -1,3 +1,4 @@
+---
 postgresql_databases:
   - name: n8n_db
     owner: n8n
