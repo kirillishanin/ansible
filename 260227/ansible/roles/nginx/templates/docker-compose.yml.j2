@@ -1,9 +1,9 @@
 services:
-nginx:
+  nginx:
     image: nginx:latest
     container_name: nginx-rp
     restart: unless-stopped
     ports:
-        - "80:80"
+      - "80:80"
     volumes:
-        - /opt/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /opt/nginx/nginx.conf:/etc/nginx/nginx.conf:ro

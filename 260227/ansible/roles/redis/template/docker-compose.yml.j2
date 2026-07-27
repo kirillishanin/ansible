@@ -1,9 +1,9 @@
 services:
-    redis:
+  redis:
     image: redis:7
     container_name: redis
     restart: unless-stopped
     command: >
-        redis-server--appendonly "{{ redis_appendonly }}"
+      redis-server --appendonly "{{ redis_appendonly }}"
     ports:
-        - "6379:6379"
+      - "6379:6379"

@@ -1,5 +1,5 @@
 #!/bin/bash
-set-e
+set -e
 vagrant up
 cd ansible
 ansible-playbook playbooks/site.yml

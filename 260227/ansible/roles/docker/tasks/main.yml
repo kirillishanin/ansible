@@ -39,7 +39,7 @@
     name: "{{ item }}"
     groups: docker
     append: true
-    loop: "{{ docker_users }}"
+  loop: "{{ docker_users }}"
 - name: Enable Docker service
   service:
     name: docker

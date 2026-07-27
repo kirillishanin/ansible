@@ -1,3 +1,3 @@
 #!/bin/bash
-set-e
-vagrant destroy-f
+set -e
+vagrant destroy -f
